@@ -1,0 +1,4 @@
+This repo contains the skeleton for a Linux application written in C++ with a dependency on SDL2.
+
+Building is done via Makefile; there are tasks included to use VSCode as well.
+
