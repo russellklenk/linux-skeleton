@@ -9,6 +9,7 @@
 *.so
 *.apk
 *.dep
+*.d
 
 # Packages #
 ############
@@ -44,6 +45,7 @@ obj
 # Miscellaneous #
 #################
 SCRATCH
+Makefile
 
 # OS generated files #
 ######################

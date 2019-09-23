@@ -5,11 +5,31 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) target1",
+            "name": "(gdb) target",
             "type": "cppdbg",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/target1",
+            "program": "${workspaceFolder}/target",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": ".",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }, 
+        {
+            "name": "(gdb) tests",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/runtests",
             "args": [],
             "stopAtEntry": true,
             "cwd": ".",

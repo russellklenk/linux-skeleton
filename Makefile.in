@@ -1,0 +1,69 @@
+CC                            = $(PROG_PREFIX)gcc $(SYSROOT)
+CXX                           = $(PROG_PREFIX)g++ $(SYSROOT)
+AR                            = $(PROG_PREFIX)ar
+
+SDL2_CFLAGS                  := $(shell sdl2-config --cflags)
+SDL2_LDFLAGS                 := $(shell sdl2-config --libs)
+
+WARNINGS                      = -Wall -Wextra -Werror=return-type
+INCLUDE_DIRS                  = -I. -Iinclude
+CXXFLAGS_BASE                 = -std=c++11 -pthread -fstrict-aliasing -D__STDC_FORMAT_MACROS $(DEBUG_FLAGS) $(TEST_FLAGS) $(INCLUDE_DIRS) $(WARNINGS) $(OPTIMIZER_FLAGS)
+LDFLAGS_BASE                  = -L. -Llibs -lstdc++ -lrt -lm
+
+SOURCE_FILES_C                = $(wildcard src/*.c) $(wildcard src/posix/*.c) $(wildcard src/linux/*.c)
+SOURCE_FILES_CXX              = $(wildcard src/*.cc) $(wildcard src/posix/*.cc) $(wildcard src/linux/*.cc)
+OBJECT_FILES                  = $(SOURCE_FILES_C:.c=.o) $(SOURCE_FILES_CXX:.cc=.o)
+DEPENDENCY_FILES              = $(OBJECT_FILES:.o=.d)
+
+TARGET                        = target
+TARGET_MAIN                   = main/target.cc
+TARGET_WARNINGS               = $(WARNINGS)
+TARGET_LIBRARIES              = $(LDFLAGS_BASE)
+TARGET_CCFLAGS                = $(CXXFLAGS) $(CXXFLAGS_BASE) $(SDL2_CFLAGS)
+TARGET_LDFLAGS                = $(LDFLAGS) $(LDFLAGS_BASE) $(SDL2_LDFLAGS)
+TARGET_OBJECT_FILES           = $(TARGET_MAIN:.cc=.o)
+TARGET_DEPENDENCY_FILES       = $(TARGET_OBJECT_FILES:.o=.d)
+
+TESTS_TARGET                  = runtests
+TESTS_TARGET_MAIN             = main/runtests.cc
+TESTS_TARGET_WARNINGS         = $(WARNINGS)
+TESTS_TARGET_LIBRARIES        = $(LDFLAGS_BASE)
+TESTS_TARGET_CCFLAGS          = $(CXXFLAGS) $(CXXFLAGS_BASE) $(SDL2_CFLAGS)
+TESTS_TARGET_LDFLAGS          = $(LDFLAGS) $(LDFLAGS_BASE) $(SDL2_LDFLAGS)
+TESTS_TARGET_OBJECT_FILES     = $(TESTS_TARGET_MAIN:.cc=.o)
+TESTS_TARGET_DEPENDENCY_FILES = $(TESTS_TARGET_OBJECT_FILES:.o=.d)
+
+$(TARGET): $(OBJECT_FILES) $(TARGET_OBJECT_FILES)
+	$(CXX) $(TARGET_CCFLAGS) -o $@ $^ $(TARGET_LDFLAGS)
+
+$(TESTS_TARGET): $(OBJECT_FILES) $(TESTS_TARGET_OBJECT_FILES)
+	$(CXX) $(TESTS_TARGET_CCFLAGS) -o $@ $^ $(TESTS_TARGET_LDFLAGS)
+
+%.o: %.c
+	$(CC) $(TARGET_CCFLAGS) -o $@ -c $<
+
+%.o: %.cc
+	$(CXX) $(TARGET_CCFLAGS) -o $@ -c $<
+
+-include $(DEPENDENCY_FILES) $(TARGET_DEPENDENCY_FILES) $(TESTS_TARGET_DEPENDENCY_FILES)
+
+%.d: %.c
+	@$(CPP) $(TARGET_CCFLAGS) $< -MM -MT $(@:.d=.o) >$@
+
+%.d: %.cc
+	@$(CPP) $(TARGET_CCFLAGS) $< -MM -MT $(@:.d=.o) >$@
+
+.PHONY: all
+all: $(TARGET) $(TESTS_TARGET)
+
+.PHONY: tests
+tests: $(TESTS_TARGET)
+
+.PHONY: clean
+clean:
+	rm -f $(OBJECT_FILES) $(TARGET_OBJECT_FILES) $(TESTS_TARGET_OBJECT_FILES) $(DEPENDENCY_FILES) $(TARGET_DEPENDENCY_FILES) $(TESTS_TARGET_DEPENDENCY_FILES) $(TARGET) $(TESTS_TARGET)
+
+.PHONY: cleandeps
+cleandeps:
+	rm -f $(DEPENDENCY_FILES) $(TARGET_DEPEDENCY_FILES) $(TESTS_TARGET_DEPENDENCY_FILES)
+

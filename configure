@@ -1,0 +1,55 @@
+#!/bin/sh
+prefix=/usr/local
+debugsym=false
+optimized=false
+striptests=false
+logging=true
+
+for arg in "$@"; do
+    case "$arg" in
+    --prefix=*)
+        prefix=`echo $arg | sed 's/--prefix=//'`
+        ;;
+
+    --debug)
+        debugsym=true;;
+
+    --silent)
+        logging=false;;
+
+    --optimize)
+        optimized=true;;
+
+    --notests)
+        striptests=true;;
+
+    --help)
+        echo 'Usage: ./configure [options]'
+        echo 'Options:'
+        echo '  --prefix=<path>: Installation path prefix'
+        echo '  --debug        : Generate debug symbols'
+        echo '  --silent       : Strip out all logging calls'
+        echo '  --optimize     : Generate optimized code'
+        echo '  --notests      : Strip out all unit test code'
+        echo 'All invalid options are silently ignored.'
+        exit 0
+        ;;
+    esac
+done
+
+echo 'Generating Makefile...'
+echo "PREFIX                = $prefix" >Makefile
+if $debugsym; then
+    echo 'DEBUG_FLAGS           = -DDEBUG_BUILD -g' >>Makefile
+fi
+if $striptests; then
+    echo 'TEST_FLAGS            = -DNO_TESTS' >>Makefile
+fi
+if $optimized; then
+    echo 'OPTIMIZER_FLAGS       = -O3' >>Makefile
+else
+    echo 'OPTIMIZER_FLAGS       = -O0' >>Makefile
+fi
+cat Makefile.in >>Makefile
+echo 'Configuration complete; type make to build.'
+
